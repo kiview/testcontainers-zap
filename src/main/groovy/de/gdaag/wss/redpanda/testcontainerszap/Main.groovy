@@ -12,29 +12,36 @@ import java.time.Duration
 class Main {
 
     static void main(String[] args) {
-        spiderScan()
-        baselineScan()
+
+
+        def image = "docker.repository.corp.gdaag.de/red-panda/featuretron-ng:latest"
+        def port = 8080
+        def networkAlias = "featuretron"
+        def waitLogMessage = ".*Started Application.*\\s"
+
+        spiderScan(image, port, networkAlias, waitLogMessage)
+        baselineScan(image, port, networkAlias, waitLogMessage)
 
         System.exit(0)
     }
 
-    static void baselineScan() {
+    static void baselineScan(String testImage, int port, String alias, String waitLog) {
         def zapNetwork = Network.newNetwork()
 
         ToStringConsumer logConsumer = new ToStringConsumer()
 
         GenericContainer zap = new GenericContainer("owasp/zap2docker-stable:latest")
-                .withCommand("zap-baseline.py", "-t", "http://featuretron:8080")
+                .withCommand("zap-baseline.py", "-t", "http://$alias:$port")
                 .withNetwork(zapNetwork)
                 .waitingFor(new LogMessageWaitStrategy().withRegEx("FAIL-NEW.*\\s"))
                 .withLogConsumer(logConsumer)
                 .withStartupTimeout(Duration.ofMinutes(3))
 
-        GenericContainer featuretron = new GenericContainer("docker.repository.corp.gdaag.de/red-panda/featuretron-ng:latest")
+        GenericContainer featuretron = new GenericContainer(testImage)
                 .withNetwork(zapNetwork)
-                .withNetworkAliases("featuretron")
-                .withExposedPorts(8080)
-                .waitingFor(new LogMessageWaitStrategy().withRegEx(".*Started Application.*\\s"))
+                .withNetworkAliases(alias)
+                .withExposedPorts(port)
+                .waitingFor(new LogMessageWaitStrategy().withRegEx(waitLog))
 
         featuretron.start()
         zap.start()
@@ -46,7 +53,7 @@ class Main {
         zapNetwork.close()
     }
 
-    static void spiderScan() {
+    static void spiderScan(String testImage, int port, String alias, String waitLog) {
         def zapNetwork = Network.newNetwork()
         GenericContainer zap = new FixedHostPortGenericContainer("owasp/zap2docker-stable:latest")
                 .withFixedExposedPort(8090, 8090)
@@ -55,11 +62,11 @@ class Main {
                 .withNetwork(zapNetwork)
                 .waitingFor(new LogMessageWaitStrategy().withRegEx(".*ZAP is now listening.*\\s"))
 
-        GenericContainer featuretron = new GenericContainer("docker.repository.corp.gdaag.de/red-panda/featuretron-ng:latest")
+        GenericContainer featuretron = new GenericContainer(testImage)
                 .withNetwork(zapNetwork)
-                .withNetworkAliases("featuretron")
-                .withExposedPorts(8080)
-                .waitingFor(new LogMessageWaitStrategy().withRegEx(".*Started Application.*\\s"))
+                .withNetworkAliases(alias)
+                .withExposedPorts(port)
+                .waitingFor(new LogMessageWaitStrategy().withRegEx(waitLog))
 
         zap.start()
         featuretron.start()
@@ -68,7 +75,7 @@ class Main {
 
         String zapUrl = "http://${zap.getContainerIpAddress()}:8090"
 
-        def scanResponse = slurper.parse(new URL("$zapUrl/JSON/spider/action/scan/?url=http://featuretron:8080"))
+        def scanResponse = slurper.parse(new URL("$zapUrl/JSON/spider/action/scan/?url=http://$alias:$port"))
         String scanId = scanResponse.scan
 
         def scanStatus = slurper.parse(new URL("$zapUrl/JSON/spider/view/status/?scanId=$scanId"))
