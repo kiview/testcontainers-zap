@@ -1,0 +1,15 @@
+group 'de.gdaag.wss.redpanda'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'groovy'
+
+repositories {
+    maven {
+        url "${artifactory_contextUrl}/libs-release"
+    }
+}
+
+dependencies {
+    compile 'org.codehaus.groovy:groovy-all:2.5.0-beta-1'
+    compile group: 'org.testcontainers', name: 'testcontainers', version: '1.4.2'
+}
