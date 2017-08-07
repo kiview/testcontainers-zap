@@ -60,26 +60,40 @@ class Main {
     }
 
     static void spiderScan(String testImage, int port, String alias, String waitLog) {
-        def zapNetwork = Network.newNetwork()
-        GenericContainer zap = new FixedHostPortGenericContainer("owasp/zap2docker-stable:latest")
-                .withFixedExposedPort(8090, 8090)
-                .withExposedPorts(8090)
-                .withCommand("zap.sh", "-daemon", "-port", "8090", "-host", "0.0.0.0", "-config", "api.disablekey=true", "-config", "api.addrs.addr.name=.*", "-config", "api.addrs.addr.regex=true")
-                .withNetwork(zapNetwork)
-                .waitingFor(new LogMessageWaitStrategy().withRegEx(".*ZAP is now listening.*\\s"))
 
-        GenericContainer featuretron = new GenericContainer(testImage)
-                .withNetwork(zapNetwork)
+        String hostNetworkId = System.getenv("TEST_NETWORK_NAME")
+
+        def zapNetworkAlias = "zap"
+        FixedHostPortGenericContainer zap = new FixedHostPortGenericContainer("owasp/zap2docker-stable:latest")
+                .withNetworkAliases(zapNetworkAlias)
+                .withCommand("zap.sh", "-daemon", "-port", "8090", "-host", "0.0.0.0", "-config", "api.disablekey=true", "-config", "api.addrs.addr.name=.*", "-config", "api.addrs.addr.regex=true")
+                .waitingFor(new LogMessageWaitStrategy().withRegEx(".*ZAP is now listening.*\\s")) as FixedHostPortGenericContainer
+
+
+        GenericContainer containerUnderTest = new GenericContainer(testImage)
                 .withNetworkAliases(alias)
                 .withExposedPorts(port)
                 .waitingFor(new LogMessageWaitStrategy().withRegEx(waitLog))
 
+        def zapNetwork
+        if (!hostNetworkId) {
+            zapNetwork = Network.newNetwork()
+            zap
+                    .withFixedExposedPort(8090, 8090)
+                    .withExposedPorts(8090)
+                    .withNetwork(zapNetwork)
+            containerUnderTest.withNetwork(zapNetwork)
+        } else {
+            zap.withNetworkMode(hostNetworkId)
+            containerUnderTest.withNetworkMode(hostNetworkId)
+        }
+
         zap.start()
-        featuretron.start()
+        containerUnderTest.start()
 
         def slurper = new JsonSlurper()
 
-        String zapUrl = "http://${zap.getContainerIpAddress()}:8090"
+        String zapUrl = "http://${!hostNetworkId ? zap.getContainerIpAddress() : zapNetworkAlias}:8090"
 
         def scanResponse = slurper.parse(new URL("$zapUrl/JSON/spider/action/scan/?url=http://$alias:$port"))
         String scanId = scanResponse.scan
@@ -103,8 +117,10 @@ class Main {
         println alerts.alerts
 
         zap.stop()
-        featuretron.stop()
-        zapNetwork.close()
+        containerUnderTest.stop()
+        if (zapNetwork) {
+            zapNetwork.close()
+        }
     }
 
 
