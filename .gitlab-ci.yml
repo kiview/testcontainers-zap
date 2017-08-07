@@ -1,0 +1,46 @@
+image: docker.repository.corp.gdaag.de/wss/java-build-container
+
+variables:
+    GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+
+before_script:
+    - export GRADLE_USER_HOME=`pwd`/.gradle
+
+cache:
+  paths:
+   - .gradle/caches
+
+stages:
+  - build
+  - dockerBuild
+  - integrationTest
+
+build:
+  stage: build
+  script:
+    - gradle clean assemble
+  allow_failure: false
+  artifacts:
+    paths:
+      - build/
+
+dockerBuild:
+  stage: dockerBuild
+  script:
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
+    - gradle buildDocker
+
+integrationTest:
+  stage: integrationTest
+  image: docker:latest
+  services:
+    - name: docker.repository.corp.gdaag.de/wss/dind-service-image
+      alias: docker
+  tags:
+    - dind
+  before_script:
+    - docker info
+  script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker run -v /var/run/docker.sock:/var/run/docker.sock -e "IMAGE=httpd:2.2.34" -e "PORT=80" -e "WAIT_LOG_MESSAGE=(?s).*resuming normal operations.*" $CI_REGISTRY_IMAGE:latest
+
