@@ -33,6 +33,8 @@ dockerBuild:
 integrationTest:
   stage: integrationTest
   image: docker:latest
+  variables:
+    DOCKER_DRIVER: overlay2
   services:
     - name: docker.repository.corp.gdaag.de/wss/dind-service-image
       alias: docker
