@@ -11,13 +11,19 @@ import java.time.Duration
 
 class Main {
 
+
+    public static final String ENV_IMAGE = "IMAGE"
+    public static final String ENV_PORT = "PORT"
+    public static final String ENV_WAIT_LOG_MESSAGE ="WAIT_LOG_MESSAGE"
+
     static void main(String[] args) {
 
 
-        def image = "docker.repository.corp.gdaag.de/red-panda/featuretron-ng:latest"
-        def port = 8080
-        def networkAlias = "featuretron"
-        def waitLogMessage = ".*Started Application.*\\s"
+        def image = System.getenv(ENV_IMAGE)
+        def port = Integer.parseInt(System.getenv(ENV_PORT) ?: "8080")
+        def waitLogMessage = System.getenv(ENV_WAIT_LOG_MESSAGE)
+
+        def networkAlias = "app_under_test"
 
         spiderScan(image, port, networkAlias, waitLogMessage)
         baselineScan(image, port, networkAlias, waitLogMessage)
