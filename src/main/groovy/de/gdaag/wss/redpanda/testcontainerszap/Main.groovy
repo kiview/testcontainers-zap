@@ -36,11 +36,10 @@ class Main {
         String hostNetworkId = System.getenv("TEST_NETWORK_NAME")
 
         def zapNetworkAlias = "zap"
-        GenericContainer zap = new FixedHostPortGenericContainer("owasp/zap2docker-stable:latest")
-                .withFixedExposedPort(8090, 8090)
+        FixedHostPortGenericContainer zap = new FixedHostPortGenericContainer("owasp/zap2docker-stable:latest")
                 .withExposedPorts(8090)
                 .withCommand("zap-x.sh", "-daemon", "-port", "8090", "-host", "0.0.0.0", "-config", "api.disablekey=true", "-config", "api.addrs.addr.name=.*", "-config", "api.addrs.addr.regex=true")
-                .waitingFor(new LogMessageWaitStrategy().withRegEx(".*ZAP is now listening.*\\s"))
+                .waitingFor(new LogMessageWaitStrategy().withRegEx(".*ZAP is now listening.*\\s")) as FixedHostPortGenericContainer
 
         GenericContainer containerUnderTest = new GenericContainer(testImage)
                 .withNetworkAliases(alias)
