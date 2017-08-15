@@ -16,12 +16,10 @@ class Main {
 
         def networkAlias = "app_under_test"
 
-        ActiveScanner.zapActiveScan(image, port, networkAlias, waitLogMessage)
-        SpiderScanner.spiderScan(image, port, networkAlias, waitLogMessage)
-        BaselineScanner.baselineScan(image, port, networkAlias, waitLogMessage)
+        ActiveScanner.scan(image, port, networkAlias, waitLogMessage)
+        SpiderScanner.scan(image, port, networkAlias, waitLogMessage)
+        BaselineScanner.scan(image, port, networkAlias, waitLogMessage)
 
         System.exit(0)
     }
-
-
 }

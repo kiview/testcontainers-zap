@@ -10,7 +10,7 @@ import org.testcontainers.containers.wait.LogMessageWaitStrategy
  * TODO: Documentation
  */
 class SpiderScanner {
-    static void spiderScan(String testImage, int port, String alias, String waitLog) {
+    static void scan(String testImage, int port, String alias, String waitLog) {
 
         String hostNetworkId = System.getenv("TEST_NETWORK_NAME")
 

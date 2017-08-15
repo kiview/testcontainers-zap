@@ -11,7 +11,7 @@ import java.time.Duration
  * TODO: Documentation
  */
 class BaselineScanner {
-    static void baselineScan(String testImage, int port, String alias, String waitLog) {
+    static void scan(String testImage, int port, String alias, String waitLog) {
         def zapNetwork = Network.newNetwork()
 
         ToStringConsumer logConsumer = new ToStringConsumer()
