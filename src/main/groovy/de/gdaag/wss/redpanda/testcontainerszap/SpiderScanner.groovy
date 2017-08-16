@@ -1,10 +1,13 @@
 package de.gdaag.wss.redpanda.testcontainerszap
 
+import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import org.testcontainers.containers.FixedHostPortGenericContainer
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.Network
 import org.testcontainers.containers.wait.LogMessageWaitStrategy
+
+import static groovy.json.JsonOutput.toJson
 
 /**
  * TODO: Documentation
@@ -65,8 +68,8 @@ class SpiderScanner {
 
 
         def alerts = slurper.parse(new URL("$zapUrl/JSON/core/view/alerts/"))
-        println alerts.alerts
-
+        println JsonOutput.prettyPrint(toJson(alerts.alerts))
+        println JsonOutput.prettyPrint("$zapUrl/JSON/core/view/sites/".toURL().text)
         zap.stop()
         containerUnderTest.stop()
         if (zapNetwork) {

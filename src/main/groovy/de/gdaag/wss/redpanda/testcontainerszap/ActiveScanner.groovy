@@ -1,14 +1,14 @@
 package de.gdaag.wss.redpanda.testcontainerszap
 
+import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import org.testcontainers.containers.FixedHostPortGenericContainer
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.Network
 import org.testcontainers.containers.wait.LogMessageWaitStrategy
 
-/**
- * TODO: Documentation
- */
+import static groovy.json.JsonOutput.toJson
+
 class ActiveScanner {
     static void scan(String testImage, int port, String alias, String waitLog) {
         String hostNetworkId = System.getenv("TEST_NETWORK_NAME")
@@ -76,7 +76,7 @@ class ActiveScanner {
         }
 
         def alerts = slurper.parse(new URL("$zapUrl/JSON/core/view/alerts/"))
-        println alerts.alerts
+        println JsonOutput.prettyPrint(toJson(alerts.alerts))
 
         zap.stop()
         containerUnderTest.stop()
