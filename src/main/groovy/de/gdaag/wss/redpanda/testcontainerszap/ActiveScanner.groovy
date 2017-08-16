@@ -14,7 +14,7 @@ class ActiveScanner {
         String hostNetworkId = System.getenv("TEST_NETWORK_NAME")
 
         def zapNetworkAlias = "zap"
-        FixedHostPortGenericContainer zap = new FixedHostPortGenericContainer("owasp/zap2docker-stable:latest")
+        FixedHostPortGenericContainer zap = new FixedHostPortGenericContainer("docker.repository.corp.gdaag.de/red-panda/zap-sqlmap:latest")
                 .withExposedPorts(8090)
                 .withCommand("zap-x.sh", "-daemon", "-port", "8090", "-host", "0.0.0.0", "-config", "api.disablekey=true", "-config", "api.addrs.addr.name=.*", "-config", "api.addrs.addr.regex=true")
                 .waitingFor(new LogMessageWaitStrategy().withRegEx(".*ZAP is now listening.*\\s")) as FixedHostPortGenericContainer
