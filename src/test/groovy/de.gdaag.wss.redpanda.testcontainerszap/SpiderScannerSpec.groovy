@@ -2,10 +2,6 @@ package de.gdaag.wss.redpanda.testcontainerszap
 
 import spock.lang.Specification
 
-/**
- * TODO: Documentation
- */
-
 class SpiderScannerSpec extends Specification {
 
     def "scans httpd"() {
