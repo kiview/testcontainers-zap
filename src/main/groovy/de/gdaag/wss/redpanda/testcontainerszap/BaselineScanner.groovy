@@ -16,7 +16,7 @@ class BaselineScanner {
 
         ToStringConsumer logConsumer = new ToStringConsumer()
 
-        GenericContainer zap = new GenericContainer("owasp/zap2docker-stable:latest")
+        GenericContainer zap = new GenericContainer("kiview/zap-sqlmap:latest")
                 .withCommand("zap-baseline.py", "-t", "http://$alias:$port")
                 .withNetwork(zapNetwork)
                 .waitingFor(new LogMessageWaitStrategy().withRegEx("FAIL-NEW.*\\s"))
