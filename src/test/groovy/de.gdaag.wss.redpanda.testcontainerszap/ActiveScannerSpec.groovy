@@ -12,8 +12,7 @@ class ActiveScannerSpec extends Specification {
 
     def "scans dvsba"() {
         expect:
-        ActiveScanner.scan("dvsba:latest", 8080, "dvsba", "(?s).*Started DamnVulnerableSpringBootAppApplication.*")
+        ActiveScanner.scan("dvsba:latest", 8080, "dvsba", "(?s).*Started DvsbaApplication.*")
     }
-
 
 }

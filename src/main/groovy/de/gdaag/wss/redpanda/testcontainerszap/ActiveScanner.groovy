@@ -76,7 +76,12 @@ class ActiveScanner {
         }
 
         def alerts = slurper.parse(new URL("$zapUrl/JSON/core/view/alerts/"))
-        println JsonOutput.prettyPrint(toJson(alerts.alerts))
+        def alertsJson = JsonOutput.prettyPrint(toJson(alerts.alerts))
+        println alertsJson
+
+        def alertsFile = new File("alerts.json")
+        alertsFile.text = ""
+        alertsFile.text = alertsJson
 
         zap.stop()
         containerUnderTest.stop()
